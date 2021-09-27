@@ -1,0 +1,24 @@
+{
+  "name": "department",
+  "version": "1.0.0",
+  "description": "",
+  "main": "",
+  "scripts": {
+    "start": "cross-env SLS_DEBUG='*' NODE_OPTIONS='--max_old_space_size=4096' STAGE='local' npx sls offline",
+    "deploy": "sls deploy --verbose"
+  },
+  "author": " <dominuss_ dominuss_mail@protonmail.com>",
+  "license": "ISC",
+  "dependencies": {
+    "@company/core": "file:../core",
+    "aws-lambda": "^1.0.6",
+    "aws-sdk": "^2.995.0",
+    "serverless-offline": "^8.2.0",
+    "uuid": "^8.3.2",
+    "validator": "^13.6.0"
+  },
+  "devDependencies": {
+    "cross-env": "^7.0.3",
+    "serverless-plugin-typescript": "^2.1.0"
+  }
+}

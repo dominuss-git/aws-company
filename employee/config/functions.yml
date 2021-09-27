@@ -1,0 +1,27 @@
+create:
+  handler: src/create.handler
+  events:
+    - http:
+        path: /
+        method: post
+
+getAll:
+  handler: src/getAll.handler
+  events:
+    - http:
+        path: /
+        method: get
+
+getById:
+  handler: src/getById.handler
+  events:
+    - http:
+        path: /{id}
+        method: get
+
+deleteById:
+  handler: src/deleteById.handler
+  events:
+    - http:
+        path: /{id}
+        method: delete

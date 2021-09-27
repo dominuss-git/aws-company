@@ -1,0 +1,41 @@
+create:
+  handler: src/create.handler
+  events:
+    - http:
+        path: /
+        method: post
+
+addEmployee:
+  handler: src/addEmployee.handler
+  events:
+    - http:
+        path: /{dep}
+        method: post
+
+getById:
+  handler: src/getById.handler
+  events:
+    - http:
+        path: /{dep}
+        method: get
+
+getAll:
+  handler: src/getAll.handler
+  events:
+    - http:
+        path: /
+        method: get
+
+removedeleteEmployee:
+  handler: src/removeEmployee.handler
+  events:
+    - http:
+        path: /{dep}
+        method: delete
+
+top5:
+  handler: src/top5.handler
+  events:
+    - http:
+        path: /top5
+        method: get

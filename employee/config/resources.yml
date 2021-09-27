@@ -1,0 +1,35 @@
+Resources:
+  EmployeeTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: Employee
+      BillingMode: PAY_PER_REQUEST
+      
+      AttributeDefinitions:
+        - AttributeName: id
+          AttributeType: S
+
+        - AttributeName: userId
+          AttributeType: S
+
+        - AttributeName: departId
+          AttributeType: S
+
+      GlobalSecondaryIndexes:
+        - IndexName: DepartIndex
+          Projection:
+            ProjectionType: ALL
+          KeySchema: 
+            - AttributeName: departId
+              KeyType: HASH
+
+        - IndexName: UserIndex
+          Projection:
+            ProjectionType: ALL
+          KeySchema: 
+            - AttributeName: userId
+              KeyType: HASH
+
+      KeySchema:
+        - AttributeName: id
+          KeyType: HASH

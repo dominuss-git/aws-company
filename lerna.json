@@ -1,0 +1,4 @@
+{
+  "packages": ["user", "employee", "department"],
+  "version": "1.0.0"
+}

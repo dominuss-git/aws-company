@@ -1,0 +1,24 @@
+{
+  "name": "company",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start": "npx lerna run start",
+    "deploy": "npx lerna run deploy",
+    "bootstrap": "npx lerna exec --stream --concurrency 1 -- SUPPRESS_SUPPORT=1 npm install"
+  },
+  "author": " <dominuss_ dominuss_mail@protonmail.com>",
+  "license": "ISC",
+  "devDependencies": {
+    "@types/node": "^16.10.1",
+    "@types/uuid": "^8.3.1",
+    "@types/validator": "^13.6.3",
+    "cross-env": "^7.0.3",
+    "lerna": "^4.0.0",
+    "typescript": "^4.4.3"
+  },
+  "dependencies": {
+    "@types/aws-lambda": "^8.10.83"
+  }
+}

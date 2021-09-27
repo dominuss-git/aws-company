@@ -1,0 +1,14 @@
+{
+  "name": "core",
+  "version": "1.0.0",
+  "description": "",
+  "main": "",
+  "scripts": {
+    "build" : "tsc"
+  },
+  "author": " <dominuss_ dominuss_mail@protonmail.com>",
+  "license": "ISC",
+  "dependencies": {
+    "http-status-codes": "^2.1.4"
+  }
+}
