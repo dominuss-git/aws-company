@@ -9,13 +9,12 @@ const deleteById = async (event: any) => {
   const { id } = event.pathParameters;
 
   try {
-    return await employeeService.deleteById(id)
-    .then(value => {
-      return {
-        statusCode : 200,
-        body : JSON.stringify(value)
-      }
-    })
+    const value = await employeeService.deleteById(id)
+
+    return {
+      statusCode : 200,
+      body : JSON.stringify(value)
+    }
   } catch (error) {
     return {
       statusCode: error.code,

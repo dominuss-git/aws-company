@@ -9,13 +9,11 @@ const getById = async (event: any) => {
   const { id } = event.pathParameters;
 
   try {
-    return await employeeService.getById(id)
-    .then(value => {
-      return {
-        statusCode : 200,
-        body : JSON.stringify(value.Item)
-      }
-    })
+    const value = await employeeService.getById(id)
+    return {
+      statusCode : 200,
+      body : JSON.stringify(value.Item)
+    }
   } catch (error) {
     return {
       statusCode: error.code,

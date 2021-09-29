@@ -6,13 +6,12 @@ const getById = async (event: any) => {
   const departmentService = new DepartmentService(dynamodb, "Department");
   const { dep } = event.pathParameters
   try {
-    return await departmentService.getById(dep)
-    .then(value => {
-      return {
-        statusCode : 200,
-        body : JSON.stringify({ ...value })
-      }
-    })
+    const value = await departmentService.getById(dep)
+    
+    return {
+      statusCode : 200,
+      body : JSON.stringify({ ...value })
+    }
   } catch (error) {
     return {
       statusCode: error.code,

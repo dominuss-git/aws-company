@@ -37,7 +37,7 @@ export default class DepartmentService {
       throw new BadRequestError("Id is required")
     }
 
-    return this.dynamodb.query({
+    const value = await this.dynamodb.query({
       TableName: "Employee",
       IndexName: "DepartId",
       KeyConditionExpression: "departId = :departId",
@@ -46,52 +46,44 @@ export default class DepartmentService {
       }
     })
     .promise()
-    .then(value => {
-      return { 
-        ...department, 
-        employees : value.Items 
-      }
-    })
+
+    return new Promise(resolve => resolve({ 
+      ...department, 
+      employees : value.Items 
+    }))
   }
 
   top5 = async () : Promise<Array<Department>> => {
-    return this.dynamodb.scan({
+    const value = await this.dynamodb.scan({
       TableName: "Employee"
     }).promise()
-    .then(value => {
-      let result = (value.Items?.map(entity => entity.departId).reduce((acc, el) => {
-        acc[el] = (acc[el] || 0) + 1;
-        return acc;
-      }, {}));
+
+    const result = (value.Items?.map(entity => entity.departId).reduce((acc, el) => {
+      acc[el] = (acc[el] || 0) + 1;
+      return acc;
+    }, {}));
       
-      let promices : Array<Promise<Department>> = [];
+    const keys = Object.keys(result)
 
-      Object.keys(result).sort((key1, key2) => {
-        if (result[key2] < result[key1]) 
-          return -1
-        if (result[key2] > result[key1])
-          return 1
-        return 0 
-      }).slice(0, 5).map((id, index) => {
-        promices.push(this.getById(id))
-      })
+    keys.sort((left, right) => result[right] - result[left])
+    const top5Departments = keys.slice(0, 5)
+    const promises = top5Departments.map((id) => (this.getById(id)))
 
-      return Promise.all(promices) as Promise<Array<Department>>;
-    })
+    return Promise.all(promises) as Promise<Array<Department>>;
   }
 
-  deleteEmployee = ( id : string ) : Promise<Employee> => {
-    return this.dynamodb.delete({
+  deleteEmployee = async ( id : string ) : Promise<Employee> => {
+    const value = await this.dynamodb.delete({
       TableName : "Employee",
       Key : { id },
       ReturnValues : "ALL_OLD"
     }).promise()
-    .then(value => {
-      if (!value || !value.Attributes ) {
-        throw new BadRequestError("Employee doesn't exist")
-      }
-      return value.Attributes;
-    }) as Promise<Employee>;
+
+    if (!value || !value.Attributes ) {
+      throw new BadRequestError("Employee doesn't exist")
+    }
+
+    return new Promise(resolve => resolve(value.Attributes as Employee));
   }
 
   removeEmployee = async(employee : Employee, id : string) : Promise<AWS.DynamoDB.DocumentClient.GetItemOutput | Employee> => {
@@ -100,7 +92,7 @@ export default class DepartmentService {
       Key: { id : employee.userId },
       UpdateExpression: "set employeeId = :id",
       ExpressionAttributeValues: {
-        ':id' : ""
+        ':id' : id
       }
     })
 
@@ -133,7 +125,7 @@ export default class DepartmentService {
 
   create = async (candidate : CandidateDepartment) : Promise<Department> => {
     
-    let newDepartment : Department = {
+    const newDepartment : Department = {
       ...candidate,
       id : uuidv4(),
       createdAt : new Date().toISOString()
@@ -145,7 +137,7 @@ export default class DepartmentService {
     })
     .promise()
 
-    return  await this.dynamodb.update({
+    return this.dynamodb.update({
       TableName: "Employee",
       Key: { id : candidate.bossId },
       UpdateExpression: "set departId = :departId, isBoss = :isBoss",
@@ -158,13 +150,13 @@ export default class DepartmentService {
   }
 
   getAll = async () : Promise<undefined | AWS.DynamoDB.DocumentClient.ItemList> => {
-    let deps = (await this.dynamodb.scan({
+    const deps = (await this.dynamodb.scan({
       TableName : this.Table
     }).promise()).Items
 
-    let task : Array<Promise<any>> = [];
+    const task : Array<Promise<any>> = [];
 
-    deps?.map(async(dep, index) => {
+    deps?.map(async(dep) => {
       task.push(this.dynamodb.query({
         TableName: "Employee",
         IndexName: "DepartIndex",
@@ -199,7 +191,7 @@ export default class DepartmentService {
   }
 
   getById = async ( id : string ) : Promise<DepartmentData | any>  => {
-    let department = (await this.dynamodb.get({
+    const department = (await this.dynamodb.get({
       TableName : this.Table,
       Key : { id }
     }).promise()).Item
@@ -207,7 +199,7 @@ export default class DepartmentService {
     if (!department) {
       throw new BadRequestError("Department isn't exist")
     }
-    return this.dynamodb.query({
+    const value =  await this.dynamodb.query({
       TableName : "Employee",
       IndexName : "DepartIndex",
       KeyConditionExpression: "departId = :departId",
@@ -215,8 +207,6 @@ export default class DepartmentService {
         ":departId" : id
       }
     }).promise()
-    .then(value => {
-      return {department, employee : value.Items}
-    })
+    return new Promise(resolve => resolve({department, employee : value.Items}))
   }
 }

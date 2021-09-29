@@ -14,27 +14,24 @@ const create = async (event : any) => {
   try {
     checkCreateCredentials(candidate)
 
-    await departmentService.getEmployee(candidate.bossId)
-    .then(value => {
-      if (!value.Item) {
-        throw new BadRequestError("Only employees can create department")
-      }
+    const employee = await departmentService.getEmployee(candidate.bossId)
 
-      if (value.Item.departId) {
-        throw new BadRequestError("Employee already at department")
-      }
-    }) 
+    if (!employee.Item) {
+      throw new BadRequestError("Only employees can create department")
+    }
 
-    return await departmentService.create(candidate)
-    .then(value => {
-      return {
-        statusCode: 201,
-        body: JSON.stringify({
-          ...value
-        })
-      }
-    })
+    if (employee.Item.departId) {
+      throw new BadRequestError("Employee already at department")
+    }
 
+    const value = await departmentService.create(candidate)
+
+    return {
+      statusCode: 201,
+      body: JSON.stringify({
+        ...value
+      })
+    }
   } catch (error) {
     return {
       statusCode: error.code,

@@ -7,13 +7,12 @@ const getAll = async (event: any) => {
   const departmentService = new DepartmentService(dynamodb, "Department");
 
   try {
-    return await departmentService.getAll()
-    .then(value => {
-      return {
-        statusCode : 200,
-        body : JSON.stringify(value)
-      }
-    })
+    const value = await departmentService.getAll()
+
+    return {
+      statusCode : 200,
+      body : JSON.stringify(value)
+    }
   } catch (error) {
     return {
       statusCode: error.code,

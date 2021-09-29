@@ -7,13 +7,12 @@ const getAll = async (event: any) => {
   const employeeService = new EmployeeService(dynamodb, "Employee");
 
   try {
-    return await employeeService.getAll()
-    .then(value => {
-      return {
-        statusCode : 200,
-        body : JSON.stringify(value.Items)
-      }
-    })
+    const value = await employeeService.getAll()
+    
+    return {
+      statusCode : 200,
+      body : JSON.stringify(value.Items)
+    }
   } catch (error) {
     return {
       statusCode: error.code,

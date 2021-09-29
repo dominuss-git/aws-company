@@ -10,20 +10,15 @@ const removeEmployee = async (event : any) => {
   const departmentService = new DepartmentService (dynamodb, "Department");
 
   try {
-
     const employee : Employee = await departmentService.deleteEmployee(employeeId)
+    const value =  await departmentService.removeEmployee(employee as Employee, dep)
     
-
-    return await departmentService.removeEmployee(employee as Employee, dep)
-    .then(value => {
-      return {
-        statusCode : 200,
-        body : JSON.stringify({
-          ...value
-        })
-      } 
-    })
-
+    return {
+      statusCode : 200,
+      body : JSON.stringify({
+        ...value
+      })
+    } 
   } catch (error) {
     return {
       statusCode: error.code,

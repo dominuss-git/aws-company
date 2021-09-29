@@ -15,28 +15,23 @@ const addEmployee = async (event : any) => {
 
     const employee : Employee | AWS.DynamoDB.DocumentClient.GetItemOutput  
     = await departmentService.getEmployee(employeeId)
-    .then(value => {
-      if (!value.Item) {
-        throw new BadRequestError("Only employees can create department")
-      }
+    // .then(value => {
+    if (!employee.Item) {
+      throw new BadRequestError("Only employees can create department")
+    }
 
-      if (value.Item.departId) {
-        throw new BadRequestError("Employee already at department")
-      }
+    if (employee.Item.departId) {
+      throw new BadRequestError("Employee already at department")
+    }
 
-      return value.Item;
-    }) 
+    const value = await departmentService.addEmployee(employee as Employee, dep)
 
-    return await departmentService.addEmployee(employee as Employee, dep)
-    .then(value => {
-      return {
-        statusCode : 200,
-        body : JSON.stringify({
-          ...value
-        })
-      } 
-    })
-
+    return {
+      statusCode : 200,
+      body : JSON.stringify({
+        ...value
+      })
+    } 
   } catch (error) {
     return {
       statusCode: error.code,

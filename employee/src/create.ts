@@ -13,23 +13,20 @@ const create = async (event : any) => {
   try {
     checkCreateCredentials(candidate)
 
-    await employeeService.getByUserId(candidate.userId)
-    .then(value => {
-      if (!!value.Items?.length) {
-        throw new BadRequestError("Employee is exist")
-      }
-    }) 
+    const value = await employeeService.getByUserId(candidate.userId)
 
-    return await employeeService.create(candidate)
-    .then(value => {
-      return {
-        statusCode: 201,
-        body: JSON.stringify({
-          ...value
-        })
-      }
-    })
+    if (!!value.Items?.length) {
+      throw new BadRequestError("Employee is exist")
+    }
 
+    const result =  await employeeService.create(candidate)
+
+    return {
+      statusCode: 201,
+      body: JSON.stringify({
+        ...result
+      })
+    }
   } catch (error) {
     return {
       statusCode: error.code,

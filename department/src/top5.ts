@@ -8,11 +8,12 @@ const top5 = async (event: any) => {
   const departmentService = new DepartmentService(dynamodb, "Department");
 
   try {
-    return await departmentService.top5()
-    .then(value => ({
+    const value =  await departmentService.top5()
+    
+    return {
       statusCode : 200,
       body: JSON.stringify(value)
-    }))
+    }
 
   } catch (error) {
     return {

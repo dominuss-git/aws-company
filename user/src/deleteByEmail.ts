@@ -1,30 +1,29 @@
-import * as AWS from 'aws-sdk';
+import * as AWS from 'aws-sdk'
 
-import UserService from './services/UserService';
+import UserService from './services/UserService'
 
 const deleteByEmail = async (event: any) => {
   const dynamodb = new AWS.DynamoDB.DocumentClient()
-  const userService = new UserService(dynamodb, "User");
+  const userService = new UserService(dynamodb, 'User')
 
   const { email } = JSON.parse(event.body)
   try {
-    return await userService.deleteByEmail(email)
-    .then(value => {
-      return {
-        statusCode : 200,
-        body : JSON.stringify(value)
-      }
-    })
+    const value = await userService.deleteByEmail(email)
+
+    return {
+      statusCode: 200,
+      body: JSON.stringify(value)
+    }
   } catch (error) {
     return {
       statusCode: error.code,
-      body : JSON.stringify({
-        message : error.message
+      body: JSON.stringify({
+        message: error.message
       })
     }
   }
-};
+}
 
 module.exports = {
-  handler : deleteByEmail
+  handler: deleteByEmail
 }

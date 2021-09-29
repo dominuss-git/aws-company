@@ -1,177 +1,164 @@
 import * as AWS from 'aws-sdk';
 import { v4 as uuidv4 } from 'uuid';
 
-import { Candidate, User, UserData } from "@company/core/src/types/user";
-import { AttributeMap } from 'aws-sdk/clients/dynamodb';
+import { Candidate, User, UserData } from '@company/core/src/types/user';
 import { BadRequestError } from '@company/core/src/errors';
 
 export default class UserService {
   constructor(
     private dynamodb : AWS.DynamoDB.DocumentClient,
-    readonly Table : string
-   ) {}
+    readonly Table : string,
+  ) {}
 
-  getByEmail = (email : string) : Promise<AWS.DynamoDB.DocumentClient.QueryOutput> => {
-    
-    return this.dynamodb.query({
-      TableName: this.Table,
-      IndexName: "EmailIndex",
-      KeyConditionExpression: "email = :email",
-      ExpressionAttributeValues: {
-        ":email" : email
-      }
-    })
+  getByEmail = (email : string) : Promise<AWS.DynamoDB.DocumentClient.QueryOutput> => this.dynamodb.query({
+    TableName: this.Table,
+    IndexName: 'EmailIndex',
+    KeyConditionExpression: 'email = :email',
+    ExpressionAttributeValues: {
+      ':email': email,
+    },
+  })
     .promise()
-  }
 
   createUser = (user : Candidate) : Promise<User> => {
-    let newUser : User = {
+    const newUser : User = {
       ...user,
-      id : uuidv4(),
-      employeeId : undefined,
-      createdAt : new Date().toISOString()
-    }
-    
+      id: uuidv4(),
+      employeeId: undefined,
+      createdAt: new Date().toISOString(),
+    };
+
     return this.dynamodb.put({
-      TableName : this.Table,
-      Item : newUser
+      TableName: this.Table,
+      Item: newUser,
     })
-    .promise()
-    .then(() => newUser)
-
+      .promise()
+      .then(() => newUser);
   }
 
-  getAll = () : Promise<AWS.DynamoDB.DocumentClient.QueryOutput> => {
-    return this.dynamodb.scan({
-      TableName : this.Table
-    }).promise()
-  }
+  getAll = () : Promise<AWS.DynamoDB.DocumentClient.QueryOutput> => this.dynamodb.scan({
+    TableName: this.Table,
+  }).promise()
 
-  getById = async ( id : string ) : Promise<UserData | any>  => {
-    let user = (await this.dynamodb.get({
-      TableName : this.Table,
-      Key : { id }
-    }).promise()).Item
+  getById = async (id : string) : Promise<UserData | any> => {
+    const user = (await this.dynamodb.get({
+      TableName: this.Table,
+      Key: { id },
+    }).promise()).Item;
 
     if (!user) {
-      throw new BadRequestError("User isn't exist")
+      throw new BadRequestError("User isn't exist");
     }
 
     const employee = (await this.dynamodb.get({
-      TableName : "Employee",
-      Key : { id : user?.employeeId }
-    }).promise()).Item
+      TableName: 'Employee',
+      Key: { id: user?.employeeId },
+    }).promise()).Item;
 
     if (employee?.departId) {
-      return await this.dynamodb.get({
-        TableName : "Department",
-        Key: { id : employee.departId }
-      }).promise()
-      .then(value => {
-        return {
-          user,
-          department : value.Item
-        }
-      })
+      const value = await this.dynamodb.get({
+        TableName: 'Department',
+        Key: { id: employee.departId },
+      }).promise();
+
+      return {
+        user,
+        department: value.Item,
+      };
     }
 
     return user;
   }
 
-  deleteById = async ( id : string ) : Promise<AWS.DynamoDB.DocumentClient.GetItemOutput> => {
-    
+  deleteById = async (id : string) : Promise<AWS.DynamoDB.DocumentClient.GetItemOutput> => {
     const deleted = await this.dynamodb.delete({
-      TableName : this.Table,
-      Key : { id },
-      ReturnValues : "ALL_OLD"
-    }).promise()
+      TableName: this.Table,
+      Key: { id },
+      ReturnValues: 'ALL_OLD',
+    }).promise();
 
     if (!deleted || !deleted.Attributes) {
-      throw new BadRequestError("User isn't exist")
+      throw new BadRequestError("User isn't exist");
     }
 
     if (deleted.Attributes?.employeeId) {
-      const del = deleted.Attributes
-      await this.dynamodb.delete({
-        TableName: "Employee",
-        Key : { id : deleted.Attributes.employeeId } 
-      }).promise()
-      .then(value => {
-        return {
-          ...del, 
-          employeeId : value 
-        }
-      })
+      const del = deleted.Attributes;
+      const value = await this.dynamodb.delete({
+        TableName: 'Employee',
+        Key: { id: deleted.Attributes.employeeId },
+      }).promise();
+
+      return {
+        ...del,
+        employeeId: value,
+      } as any;
     }
 
-    return deleted
+    return deleted;
   }
 
   top5 = async () : Promise<Array<User>> => {
-    return await this.dynamodb.scan({
-      TableName : this.Table
-    }).promise()
-    .then(value => {
-      let result = value.Items as Array<User>;
+    const value = await this.dynamodb.scan({
+      TableName: this.Table,
+    }).promise();
 
-      result?.sort((a : User, b : User) => {
-        if (b.createdAt < a.createdAt) 
-          return -1
-        if (b.createdAt > a.createdAt)
-          return 1
-        return 0 
-      })
+    const result = value.Items as Array<User>;
 
-      return result.splice(0, 5);
-    })
-    
+    result?.sort((a : User, b : User) => {
+      if (b.createdAt < a.createdAt) { return -1; }
+      if (b.createdAt > a.createdAt) return 1;
+      return 0;
+    });
+
+    return result.splice(0, 5);
   }
 
-  deleteByEmail = async ( email : string ) : Promise<UserData | any> => {
+  deleteByEmail = async (email : string) : Promise<UserData | any> => {
     const candidate = await this.dynamodb.query({
-      TableName : this.Table,
-      IndexName : "EmailIndex",
-      KeyConditionExpression: "email = :email",
+      TableName: this.Table,
+      IndexName: 'EmailIndex',
+      KeyConditionExpression: 'email = :email',
       ExpressionAttributeValues: {
-        ":email" : email
-      }
-    }).promise()
+        ':email': email,
+      },
+    }).promise();
 
     if (!candidate || !candidate.Items?.length) {
-      throw new BadRequestError("User with this email doesn't exist")
+      throw new BadRequestError("User with this email doesn't exist");
     }
 
     const deleted = await this.dynamodb.delete({
-      TableName : this.Table,
-      Key : { id : candidate.Items[0]?.id },
-      ReturnValues : "ALL_OLD"
-    }).promise()
+      TableName: this.Table,
+      Key: { id: candidate.Items[0]?.id },
+      ReturnValues: 'ALL_OLD',
+    }).promise();
 
     if (!deleted || !deleted.Attributes) {
-      throw new BadRequestError("User isn't exist")
+      throw new BadRequestError("User isn't exist");
     }
 
-    return this.dynamodb.delete({
-      TableName : "Employee",
-      Key : { id : deleted.Attributes?.employeeId }
-    }).promise() 
-    .then(value => ({ ...deleted, employeeId : value.Attributes}))
+    const value = await this.dynamodb.delete({
+      TableName: 'Employee',
+      Key: { id: deleted.Attributes?.employeeId },
+    }).promise();
+
+    return {
+      ...deleted,
+      employeeId: value.Attributes,
+    };
   }
 
-  putEmployee = async ( email : string, employeeId : string ) : Promise<AWS.DynamoDB.DocumentClient.GetItemOutput> => {
-    const user : AttributeMap = (await this.getByEmail(email)
-    .then((value) =>  {
-      if(!value || !value.Items?.length) {
-        throw new BadRequestError("User with this email doesn't exist") 
-      }
+  putEmployee = async (email : string, employeeId : string) : Promise<AWS.DynamoDB.DocumentClient.GetItemOutput> => {
+    const user : AWS.DynamoDB.DocumentClient.ItemList | undefined = (await this.getByEmail(email)).Items;
 
-      return value.Items[0]
-    }))
+    if (!user || !user.length) {
+      throw new BadRequestError("User with this email doesn't exist");
+    }
 
     return this.dynamodb.put({
-      TableName : this.Table,
-      Item : {...user, employeeId},
-      ReturnValues : "ALL_OLD"
-    }).promise()
+      TableName: this.Table,
+      Item: { ...user[0], employeeId },
+      ReturnValues: 'ALL_OLD',
+    }).promise();
   }
 }

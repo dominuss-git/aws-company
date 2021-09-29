@@ -19,6 +19,7 @@
   },
   "devDependencies": {
     "cross-env": "^7.0.3",
+    "eslint": "^7.32.0",
     "serverless-plugin-typescript": "^2.1.0"
   }
 }
